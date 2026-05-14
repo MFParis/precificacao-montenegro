@@ -10,12 +10,12 @@
   .card { background: #fff; border-radius: 18px; padding: 2rem; max-width: 520px; width: 100%; box-shadow: 0 4px 24px rgba(21,101,192,0.10); }
   .logo-area { text-align: center; margin-bottom: 1.5rem; padding-bottom: 1.25rem; border-bottom: 1px solid #eef2f7; }
   .logo-area img { height: 90px; object-fit: contain; }
-  .proto-banner { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #6d4c00; margin-bottom: 1.5rem; line-height: 1.5; }
-  .proto-banner strong { color: #e65100; }
   .field { margin-bottom: 1rem; }
   label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 5px; }
-  select { width: 100%; padding: 9px 12px; border: 1.5px solid #dde3ec; border-radius: 8px; font-size: 14px; color: #1a1a1a; background: #fff; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231565C0' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; transition: border-color .2s; }
-  select:focus { outline: none; border-color: #1565C0; box-shadow: 0 0 0 3px rgba(21,101,192,0.10); }
+  select, input[type=number] { width: 100%; padding: 9px 12px; border: 1.5px solid #dde3ec; border-radius: 8px; font-size: 14px; color: #1a1a1a; background: #fff; transition: border-color .2s; }
+  select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231565C0' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  select:focus, input[type=number]:focus { outline: none; border-color: #1565C0; box-shadow: 0 0 0 3px rgba(21,101,192,0.10); }
+  input[type=number]::-webkit-inner-spin-button { opacity: 1; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .divider { height: 1px; background: #eef2f7; margin: 1.5rem 0; }
   .result-area { background: #f4f7fb; border-radius: 12px; padding: 1.25rem; }
@@ -43,8 +43,8 @@
   </div>
   <div class="row">
     <div class="field">
-      <label for="cidade">Cidade / UF</label>
-      <select id="cidade"><option value="">Selecione a cidade...</option></select>
+      <label for="frete">Frete (R$/kg)</label>
+      <input type="number" id="frete" placeholder="Ex: 0.30" min="0" step="0.05">
     </div>
     <div class="field">
       <label for="prazo">Prazo de pagamento</label>
@@ -68,51 +68,28 @@
         </div>
       </div>
     </div>
-    <div id="resultado-empty" class="empty">Selecione produto, cidade e prazo</div>
+    <div id="resultado-empty" class="empty">Selecione produto, informe o frete e o prazo</div>
   </div>
 </div>
 
 <script>
 const produtos = [
-  {nome:"Café Belveder Vacuo 250G",   custo:17,    comA:0.025, comB:0.03, margA:0.15, margB:0.20},
-  {nome:"Café Molito Almofada 500g",  custo:17,    comA:0.025, comB:0.03, margA:0.25, margB:0.30},
-  {nome:"Café Molito Vacuo 250g",     custo:17,    comA:0.025, comB:0.03, margA:0.10, margB:0.15},
-  {nome:"Café Molito Vacuo 500g",     custo:17,    comA:0.025, comB:0.03, margA:0.20, margB:0.25},
-  {nome:"Dumonte 200G",               custo:8.95,  comA:0.025, comB:0.03, margA:0.15, margB:0.20},
-  {nome:"Dumonte 400G",               custo:8.95,  comA:0.025, comB:0.03, margA:0.12, margB:0.17},
-  {nome:"Dumonte 800G",               custo:8.95,  comA:0.025, comB:0.03, margA:0.15, margB:0.20},
-  {nome:"Dumonte Vitaminado 200G",    custo:8.95,  comA:0.025, comB:0.03, margA:0.10, margB:0.15},
+  {nome:"Café Belveder Vacuo 250G",   custo:17,    comA:0.025, comB:0.03,  margA:0.15, margB:0.20},
+  {nome:"Café Molito Almofada 500g",  custo:17,    comA:0.025, comB:0.03,  margA:0.25, margB:0.30},
+  {nome:"Café Molito Vacuo 250g",     custo:17,    comA:0.025, comB:0.03,  margA:0.10, margB:0.15},
+  {nome:"Café Molito Vacuo 500g",     custo:17,    comA:0.025, comB:0.03,  margA:0.20, margB:0.25},
+  {nome:"Composto Fortificado 800G",  custo:9.15,  comA:0.025, comB:0.03,  margA:0.25, margB:0.30},
+  {nome:"Dumonte 200G",               custo:9.15,  comA:0.025, comB:0.03,  margA:0.15, margB:0.20},
+  {nome:"Dumonte 400G",               custo:9.15,  comA:0.025, comB:0.03,  margA:0.12, margB:0.17},
+  {nome:"Dumonte 800G",               custo:9.15,  comA:0.025, comB:0.03,  margA:0.15, margB:0.20},
+  {nome:"Dumonte Vitaminado 200G",    custo:9.15,  comA:0.025, comB:0.03,  margA:0.10, margB:0.15},
   {nome:"Leite em Pó Desnatado 25KG", custo:23.65, comA:0.007, comB:0.012, margA:0.06, margB:0.10},
   {nome:"Leite em Pó Integral 25KG",  custo:23.12, comA:0.007, comB:0.012, margA:0.06, margB:0.10},
-  {nome:"Qualimilk 200G",             custo:19.22, comA:0.025, comB:0.03, margA:0.20, margB:0.25},
-  {nome:"Qualimilk 400G",             custo:19.22, comA:0.025, comB:0.03, margA:0.15, margB:0.20},
-  {nome:"Qualimilk Fortificado 800G", custo:19.22, comA:0.025, comB:0.03, margA:0.25, margB:0.30},
+  {nome:"Qualimilk 200G",             custo:18.37, comA:0.025, comB:0.03,  margA:0.20, margB:0.25},
+  {nome:"Qualimilk 400G",             custo:18.37, comA:0.025, comB:0.03,  margA:0.15, margB:0.20},
+  {nome:"Qualimilk Fortificado 800G", custo:19.22, comA:0.025, comB:0.03,  margA:0.10, margB:0.15},
 ];
-const cidades = [
-  {nome:"AL/Matriz de Camaragibe",    frete:2.42},
-  {nome:"CE/Amontada",                frete:0.5181},
-  {nome:"CE/Aquiraz",                 frete:0.24},
-  {nome:"CE/Aracati",                 frete:0.33},
-  {nome:"CE/Caucaia",                 frete:0.24},
-  {nome:"CE/Eusébio",                 frete:0.24},
-  {nome:"CE/Fortaleza",               frete:0.24},
-  {nome:"CE/Granja",                  frete:0.28},
-  {nome:"CE/Iguatu",                  frete:0.24},
-  {nome:"CE/Maracanau",               frete:0.30},
-  {nome:"CE/Maranguape",              frete:0.24},
-  {nome:"CE/Pacajus",                 frete:0.24},
-  {nome:"CE/Pacatuba",                frete:0.34},
-  {nome:"CE/Sobral",                  frete:0.98},
-  {nome:"GO/Luziania",                frete:1.60},
-  {nome:"MA/Raposa",                  frete:1.49},
-  {nome:"PA/Belem",                   frete:1.65},
-  {nome:"PB/João Pessoa",             frete:1.44},
-  {nome:"PI/Teresina",                frete:1.33},
-  {nome:"RN/Natal",                   frete:0.82},
-  {nome:"RN/Parnamirim",              frete:1.07},
-  {nome:"RN/São Gonçalo do Amaral",   frete:0.95},
-  {nome:"Fob",                        frete:0},
-];
+
 const prazos = [
   {nome:"À vista",              fidc:0},
   {nome:"7 dias",               fidc:0.009},
@@ -125,8 +102,8 @@ const prazos = [
   {nome:"14/21",                fidc:0.0195},
   {nome:"14/21/28",             fidc:0.023},
   {nome:"21/28",                fidc:0.0265},
-  {nome:"21/28/35",             fidc:0.03},
-  {nome:"28 dias",              fidc:0.03},
+  {nome:"21/28/35",             fidc:0.030},
+  {nome:"28 dias",              fidc:0.030},
   {nome:"15/30/45",             fidc:0.032},
   {nome:"28/35",                fidc:0.0335},
   {nome:"21/28/35/42",          fidc:0.0335},
@@ -160,31 +137,36 @@ function populate(sel, arr) {
   });
 }
 populate(document.getElementById('produto'), produtos);
-populate(document.getElementById('cidade'), cidades);
 populate(document.getElementById('prazo'), prazos);
 
 function fmt(v) { return 'R$ ' + v.toFixed(2).replace('.', ','); }
 
 function calcular() {
   const pi = document.getElementById('produto').value;
-  const ci = document.getElementById('cidade').value;
+  const freteVal = document.getElementById('frete').value;
   const pri = document.getElementById('prazo').value;
   const cards = document.getElementById('resultado-cards');
   const empty = document.getElementById('resultado-empty');
-  if (pi === '' || ci === '' || pri === '') {
+
+  if (pi === '' || freteVal === '' || pri === '') {
     cards.style.display = 'none'; empty.style.display = 'block';
     document.getElementById('result-desc').textContent = 'Preencha os campos acima para calcular';
     return;
   }
-  const prod = produtos[+pi], cid = cidades[+ci], prazo = prazos[+pri];
-  const precoA = (prod.custo + cid.frete) / (1 - prod.margA - prod.comA - prazo.fidc);
-  const precoB = (prod.custo + cid.frete) / (1 - prod.margB - prod.comB - prazo.fidc);
+  const prod = produtos[+pi];
+  const frete = parseFloat(freteVal);
+  const prazo = prazos[+pri];
+  const precoA = (prod.custo + frete) / (1 - prod.margA - prod.comA - prazo.fidc);
+  const precoB = (prod.custo + frete) / (1 - prod.margB - prod.comB - prazo.fidc);
   document.getElementById('preco-a').textContent = fmt(precoA);
   document.getElementById('preco-b').textContent = fmt(precoB);
-  document.getElementById('result-desc').textContent = prod.nome + ' · ' + cid.nome + ' · ' + prazo.nome;
+  document.getElementById('result-desc').textContent = prod.nome + ' · Frete R$ ' + frete.toFixed(2).replace('.',',') + '/kg · ' + prazo.nome;
   cards.style.display = 'block'; empty.style.display = 'none';
 }
-['produto','cidade','prazo'].forEach(id => document.getElementById(id).addEventListener('change', calcular));
+
+document.getElementById('produto').addEventListener('change', calcular);
+document.getElementById('prazo').addEventListener('change', calcular);
+document.getElementById('frete').addEventListener('input', calcular);
 </script>
 </body>
 </html>
