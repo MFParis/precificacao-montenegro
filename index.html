@@ -12,10 +12,8 @@
   .logo-area img { height: 90px; object-fit: contain; }
   .field { margin-bottom: 1rem; }
   label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 5px; }
-  select, input[type=number] { width: 100%; padding: 9px 12px; border: 1.5px solid #dde3ec; border-radius: 8px; font-size: 14px; color: #1a1a1a; background: #fff; transition: border-color .2s; }
-  select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231565C0' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
-  select:focus, input[type=number]:focus { outline: none; border-color: #1565C0; box-shadow: 0 0 0 3px rgba(21,101,192,0.10); }
-  input[type=number]::-webkit-inner-spin-button { opacity: 1; }
+  select { width: 100%; padding: 9px 12px; border: 1.5px solid #dde3ec; border-radius: 8px; font-size: 14px; color: #1a1a1a; background: #fff; transition: border-color .2s; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%231565C0' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  select:focus { outline: none; border-color: #1565C0; box-shadow: 0 0 0 3px rgba(21,101,192,0.10); }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .divider { height: 1px; background: #eef2f7; margin: 1.5rem 0; }
   .result-area { background: #f4f7fb; border-radius: 12px; padding: 1.25rem; }
@@ -44,7 +42,7 @@
   <div class="row">
     <div class="field">
       <label for="frete">Frete (R$/kg)</label>
-      <input type="number" id="frete" placeholder="Ex: 0.30" min="0" step="0.05">
+      <select id="frete"><option value="">Selecione o frete...</option></select>
     </div>
     <div class="field">
       <label for="prazo">Prazo de pagamento</label>
@@ -68,7 +66,7 @@
         </div>
       </div>
     </div>
-    <div id="resultado-empty" class="empty">Selecione produto, informe o frete e o prazo</div>
+    <div id="resultado-empty" class="empty">Selecione produto, frete e prazo</div>
   </div>
 </div>
 
@@ -129,6 +127,7 @@ const prazos = [
   {nome:"21/28/35/42/49/56/63", fidc:0.044},
 ];
 
+// Popula produtos e prazos
 function populate(sel, arr) {
   arr.forEach((item, i) => {
     const o = document.createElement('option');
@@ -139,34 +138,44 @@ function populate(sel, arr) {
 populate(document.getElementById('produto'), produtos);
 populate(document.getElementById('prazo'), prazos);
 
+// Popula frete: Fob + 0.20 até 3.00 em passos de 0.05
+const selFrete = document.getElementById('frete');
+const freteOpt = document.createElement('option');
+freteOpt.value = 0; freteOpt.textContent = 'Fob — R$ 0,00';
+selFrete.appendChild(freteOpt);
+for (let v = 0.20; v <= 3.001; v = Math.round((v + 0.05) * 1000) / 1000) {
+  const o = document.createElement('option');
+  o.value = v;
+  o.textContent = 'R$ ' + v.toFixed(2).replace('.', ',');
+  selFrete.appendChild(o);
+}
+
 function fmt(v) { return 'R$ ' + v.toFixed(2).replace('.', ','); }
 
 function calcular() {
   const pi = document.getElementById('produto').value;
-  const freteVal = document.getElementById('frete').value;
+  const fv = document.getElementById('frete').value;
   const pri = document.getElementById('prazo').value;
   const cards = document.getElementById('resultado-cards');
   const empty = document.getElementById('resultado-empty');
-
-  if (pi === '' || freteVal === '' || pri === '') {
+  if (pi === '' || fv === '' || pri === '') {
     cards.style.display = 'none'; empty.style.display = 'block';
     document.getElementById('result-desc').textContent = 'Preencha os campos acima para calcular';
     return;
   }
   const prod = produtos[+pi];
-  const frete = parseFloat(freteVal);
+  const frete = parseFloat(fv);
   const prazo = prazos[+pri];
   const precoA = (prod.custo + frete) / (1 - prod.margA - prod.comA - prazo.fidc);
   const precoB = (prod.custo + frete) / (1 - prod.margB - prod.comB - prazo.fidc);
   document.getElementById('preco-a').textContent = fmt(precoA);
   document.getElementById('preco-b').textContent = fmt(precoB);
-  document.getElementById('result-desc').textContent = prod.nome + ' · Frete R$ ' + frete.toFixed(2).replace('.',',') + '/kg · ' + prazo.nome;
+  const freteLabel = frete === 0 ? 'Fob' : 'Frete R$ ' + frete.toFixed(2).replace('.',',') + '/kg';
+  document.getElementById('result-desc').textContent = prod.nome + ' · ' + freteLabel + ' · ' + prazo.nome;
   cards.style.display = 'block'; empty.style.display = 'none';
 }
 
-document.getElementById('produto').addEventListener('change', calcular);
-document.getElementById('prazo').addEventListener('change', calcular);
-document.getElementById('frete').addEventListener('input', calcular);
+['produto','frete','prazo'].forEach(id => document.getElementById(id).addEventListener('change', calcular));
 </script>
 </body>
 </html>
